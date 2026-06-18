@@ -1,0 +1,42 @@
+[project]
+name = "sam-bench"
+version = "0.1.0"
+description = "SAM1 benchmark with PyTorch ROCm"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy>=1.26",
+    "opencv-python>=4.9",
+    "requests>=2.31",
+    "segment-anything>=1.0",
+
+    # PyTorch ROCm 7.2 stack
+    "torch==2.11.0 ; sys_platform == 'linux'",
+    "torchvision==0.26.0 ; sys_platform == 'linux'",
+    "pytorch-triton-rocm==3.5.1 ; sys_platform == 'linux'",
+    "triton-rocm==3.6.0 ; sys_platform == 'linux'",
+]
+
+[tool.uv]
+package = false
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-rocm", marker = "sys_platform == 'linux'" },
+]
+torchvision = [
+    { index = "pytorch-rocm", marker = "sys_platform == 'linux'" },
+]
+pytorch-triton-rocm = [
+    { index = "pytorch-rocm", marker = "sys_platform == 'linux'" },
+]
+triton-rocm = [
+    { index = "pytorch-rocm", marker = "sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-rocm"
+url = "https://download.pytorch.org/whl/rocm7.2"
+explicit = true
