@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""SAM1 AutomaticMaskGenerator benchmark with ROCm/AMD-friendly options."""
+
+from __future__ import annotations
 
 import argparse
 import contextlib
@@ -11,8 +14,7 @@ import cv2
 import numpy as np
 import requests
 import torch
-
-from segment_anything import sam_model_registry, SamAutomaticMaskGenerator, SamPredictor
+from segment_anything import SamAutomaticMaskGenerator, SamPredictor, sam_model_registry
 
 
 IMAGE_URL = "https://raw.githubusercontent.com/pytorch/hub/master/images/dog.jpg"
@@ -24,25 +26,24 @@ def sync_if_gpu(device: str) -> None:
 
 
 def get_autocast_context(device: str, precision: str):
-    """
-    PyTorch uses device_type='cuda' for both CUDA and ROCm/HIP builds.
+    """Return an autocast context.
+
+    PyTorch uses device_type='cuda' for both NVIDIA CUDA and ROCm/HIP builds.
     """
     if device != "cuda":
         return contextlib.nullcontext()
 
     if precision == "fp32":
         return contextlib.nullcontext()
-
     if precision == "amp-fp16":
         return torch.autocast(device_type="cuda", dtype=torch.float16)
-
     if precision == "amp-bf16":
         return torch.autocast(device_type="cuda", dtype=torch.bfloat16)
 
     raise ValueError(f"Unknown precision mode: {precision}")
 
 
-def percentile(values, p):
+def percentile(values: list[float], p: float) -> float:
     values = sorted(values)
     if not values:
         return float("nan")
@@ -54,7 +55,7 @@ def percentile(values, p):
     return values[f] + (values[c] - values[f]) * (k - f)
 
 
-def print_device_info(device: str):
+def print_device_info(device: str) -> None:
     print("\n=== Device info ===")
     print(f"Python:        {platform.python_version()}")
     print(f"PyTorch:       {torch.__version__}")
@@ -64,7 +65,6 @@ def print_device_info(device: str):
         print(f"CUDA/HIP name: {torch.cuda.get_device_name(0)}")
         print(f"Device count:  {torch.cuda.device_count()}")
 
-        # In ROCm builds, torch.version.hip is set.
         hip_version = getattr(torch.version, "hip", None)
         cuda_version = getattr(torch.version, "cuda", None)
 
@@ -88,8 +88,7 @@ def load_image(image_path: Path) -> np.ndarray:
     if image_bgr is None:
         raise RuntimeError(f"Could not read image: {image_path}")
 
-    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-    return image_rgb
+    return cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
 
 
 def benchmark_full_amg(
@@ -100,7 +99,7 @@ def benchmark_full_amg(
     precision: str,
     num_warmup: int,
     num_runs: int,
-):
+) -> tuple[list[float], list[int]]:
     print("\n=== Warmup: full automatic mask generation ===")
     for i in range(num_warmup):
         with torch.inference_mode(), get_autocast_context(device, precision):
@@ -112,8 +111,8 @@ def benchmark_full_amg(
         torch.cuda.reset_peak_memory_stats()
 
     print("\n=== Benchmark: full automatic mask generation ===")
-    times = []
-    mask_counts = []
+    times: list[float] = []
+    mask_counts: list[int] = []
 
     for i in range(num_runs):
         sync_if_gpu(device)
@@ -141,12 +140,11 @@ def benchmark_encoder_only(
     precision: str,
     num_warmup: int,
     num_runs: int,
-):
-    """
-    Diagnostic only. This does NOT replace the comparable AMG benchmark.
+) -> list[float]:
+    """Diagnostic only: measure SamPredictor.set_image().
 
-    It measures SamPredictor.set_image(), which includes preprocessing and the ViT image encoder.
-    This helps separate 'SAM encoder is slow' from 'automatic mask generation / decoder / RLE / NMS is slow'.
+    This includes preprocessing and the ViT image encoder. It does not replace
+    the comparable full AutomaticMaskGenerator benchmark.
     """
     predictor = SamPredictor(sam)
 
@@ -158,7 +156,7 @@ def benchmark_encoder_only(
         print(f"Encoder warmup {i + 1}/{num_warmup} done")
 
     print("\n=== Benchmark: encoder-only diagnostic ===")
-    times = []
+    times: list[float] = []
 
     for i in range(num_runs):
         sync_if_gpu(device)
@@ -176,7 +174,7 @@ def benchmark_encoder_only(
     return times
 
 
-def summarize_times(times, label: str):
+def summarize_times(times: list[float], label: str) -> None:
     avg = statistics.mean(times)
     med = statistics.median(times)
     p90 = percentile(times, 90)
@@ -191,11 +189,10 @@ def summarize_times(times, label: str):
     print(f"Throughput:      {throughput:.2f} images/sec")
 
 
-def main():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="SAM1 AutomaticMaskGenerator benchmark with AMD/ROCm-friendly options."
     )
-
     parser.add_argument(
         "--checkpoint",
         type=str,
@@ -224,8 +221,8 @@ def main():
         type=int,
         default=64,
         help=(
-            "Original SAM default is 64. "
-            "Try 128 or 256 on AMD discrete GPUs to reduce decoder-loop overhead."
+            "Original SAM default is 64. Try 128 on AMD discrete GPUs. "
+            "256 usually increases VRAM without improving this benchmark."
         ),
     )
     parser.add_argument("--pred-iou-thresh", type=float, default=0.88)
@@ -236,19 +233,18 @@ def main():
         default="binary_mask",
         choices=["binary_mask", "uncompressed_rle", "coco_rle"],
         help=(
-            "Keep binary_mask for strict comparability with the old script. "
-            "coco_rle can reduce output overhead but needs pycocotools."
+            "Keep binary_mask for strict comparability. coco_rle is a small "
+            "practical optimization and requires pycocotools."
         ),
     )
-
     parser.add_argument(
         "--precision",
         type=str,
         default="fp32",
         choices=["fp32", "amp-fp16", "amp-bf16"],
         help=(
-            "fp32 is most comparable. amp-fp16 may be faster on some GPUs, "
-            "but check mask counts/quality."
+            "fp32 is most comparable. amp-fp16 is faster on R9700 but can change "
+            "mask counts slightly."
         ),
     )
     parser.add_argument(
@@ -271,9 +267,11 @@ def main():
         action="store_true",
         help="Also benchmark SamPredictor.set_image() as encoder-only diagnostic.",
     )
+    return parser.parse_args()
 
-    args = parser.parse_args()
 
+def main() -> None:
+    args = parse_args()
     torch.set_float32_matmul_precision(args.matmul_precision)
 
     checkpoint_path = Path(args.checkpoint).expanduser()

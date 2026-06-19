@@ -1,4 +1,8 @@
+# Nightly ROCm PyTorch image used for the best R9700 SAM1 AMG results.
+# Starts from the stable ROCm 7.2.4 PyTorch image and replaces torch packages
+# with current nightly wheels from the ROCm 7.2 nightly index.
 ARG BASE_IMAGE=rocm/pytorch:rocm7.2.4_ubuntu24.04_py3.12_pytorch_release_2.10.0
+
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -8,7 +12,12 @@ ENV PIP_NO_CACHE_DIR=1
 WORKDIR /workspace
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git wget curl ca-certificates libglib2.0-0 libgl1 \
+    git \
+    wget \
+    curl \
+    ca-certificates \
+    libglib2.0-0 \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install --upgrade pip setuptools wheel && \
