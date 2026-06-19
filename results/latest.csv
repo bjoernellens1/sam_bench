@@ -1,0 +1,7 @@
+stack,bench,log_file,python,torch,hip_rocm,device,precision,points_per_batch,output_mode,encoder_avg_s,full_amg_avg_s,throughput_img_s,avg_masks,peak_vram_gb
+nightly,fast_amp_binary,logs/nightly_fast_amp_binary.log,3.12.3,2.14.0.dev20260617+rocm7.2,7.2.53211,Radeon 8060S Graphics,amp-fp16,128,binary_mask,0.248,4.023,0.25,61.0,5.35
+nightly,fast_amp_coco_rle,logs/nightly_fast_amp_coco_rle.log,3.12.3,2.14.0.dev20260617+rocm7.2,7.2.53211,Radeon 8060S Graphics,amp-fp16,128,coco_rle,0.248,4.012,0.25,61.0,5.35
+nightly,strict_fp32_binary,logs/nightly_strict_fp32_binary.log,3.12.3,2.14.0.dev20260617+rocm7.2,7.2.53211,Radeon 8060S Graphics,fp32,64,binary_mask,0.637,6.331,0.16,66.0,2.92
+stable,fast_amp_binary,logs/stable_fast_amp_binary.log,3.12.3,2.10.0+rocm7.2.4.git3d3aa833,7.2.53211,Radeon 8060S Graphics,amp-fp16,128,binary_mask,0.190,10.853,0.09,62.0,5.57
+stable,fast_amp_coco_rle,logs/stable_fast_amp_coco_rle.log,3.12.3,2.10.0+rocm7.2.4.git3d3aa833,7.2.53211,Radeon 8060S Graphics,amp-fp16,128,coco_rle,0.190,10.844,0.09,62.0,5.57
+stable,strict_fp32_binary,logs/stable_strict_fp32_binary.log,3.12.3,2.10.0+rocm7.2.4.git3d3aa833,7.2.53211,Radeon 8060S Graphics,fp32,64,binary_mask,0.655,12.763,0.08,66.0,2.99

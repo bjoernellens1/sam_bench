@@ -116,7 +116,6 @@ run_in_container() {
     --device=/dev/dri \
     "${group_args[@]}" \
     --ipc=host \
-    --shm-size=16G \
     -v "$ROOT_DIR:/workspace" \
     -v "$HOME/Downloads:/downloads:ro" \
     -w /workspace \
