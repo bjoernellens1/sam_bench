@@ -22,6 +22,22 @@ Main finding: the direct host result was faster than the first stable Docker res
 
 See [docs/r9700_rocm_sam_findings.md](docs/r9700_rocm_sam_findings.md) for the full analysis.
 
+## AMD platform findings
+
+Detailed platform notes are documented in:
+
+- [`docs/r9700_rocm_sam_findings.md`](docs/r9700_rocm_sam_findings.md)
+- [`docs/gfx1151_strix_halo_sam_findings.md`](docs/gfx1151_strix_halo_sam_findings.md)
+
+Current best known results:
+
+| Platform | Stack | Mode | Latency |
+|---|---|---|---:|
+| Radeon AI PRO R9700 / gfx1201 | torch 2.14 nightly | fp32 strict | 2.632 s/image |
+| Radeon AI PRO R9700 / gfx1201 | torch 2.14 nightly | AMP fp16 + coco_rle | 1.452 s/image |
+| Radeon 8060S / gfx1151 | torch 2.14 nightly | fp32 strict | 6.331 s/image |
+| Radeon 8060S / gfx1151 | torch 2.14 nightly | AMP fp16 + coco_rle | 4.012 s/image |
+
 ## Download SAM checkpoint
 
 ```bash
