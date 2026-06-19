@@ -1,0 +1,12 @@
+id,environment,platform,gpu,pytorch,hip_rocm,precision,points_per_batch,output_mode,encoder_avg_s,full_amg_avg_s,throughput_img_s,avg_masks,peak_vram_gb,notes
+host_fp32_b64_binary,Host uv,R9700 gfx1201,AMD Radeon AI PRO R9700,2.11.0+rocm7.2,7.2.26015,fp32,64,binary_mask,,3.335,0.30,66,2.96,Clean comparable host baseline
+host_fp32_b128_binary,Host uv,R9700 gfx1201,AMD Radeon AI PRO R9700,2.11.0+rocm7.2,7.2.26015,fp32,128,binary_mask,0.457,3.362,0.30,66,5.49,Batch size did not help
+host_amp_b128_binary,Host uv,R9700 gfx1201,AMD Radeon AI PRO R9700,2.11.0+rocm7.2,7.2.26015,amp-fp16,128,binary_mask,0.129,1.975,0.51,63,5.39,AMP is a major lever but masks differ
+host_amp_b256_binary,Host uv,R9700 gfx1201,AMD Radeon AI PRO R9700,2.11.0+rocm7.2,7.2.26015,amp-fp16,256,binary_mask,0.141,1.966,0.51,61,10.21,No speed gain more VRAM fewer masks
+docker210_fp32_b64_binary,Docker stable,R9700 gfx1201,AMD Radeon AI PRO R9700,2.10.0+rocm7.2.4.git3d3aa833,7.2.53211,fp32,64,binary_mask,,6.431,0.16,66,2.96,Bad regression in full AMG
+docker210_amp_b128_binary,Docker stable,R9700 gfx1201,AMD Radeon AI PRO R9700,2.10.0+rocm7.2.4.git3d3aa833,7.2.53211,amp-fp16,128,binary_mask,0.075,5.240,0.19,63,5.57,Encoder fast full AMG slow
+docker210_amp_b128_uncompressed_rle,Docker stable,R9700 gfx1201,AMD Radeon AI PRO R9700,2.10.0+rocm7.2.4.git3d3aa833,7.2.53211,amp-fp16,128,uncompressed_rle,0.075,5.168,0.19,63,5.57,Output mode did not solve stable regression
+docker210_amp_b128_coco_rle,Docker stable,R9700 gfx1201,AMD Radeon AI PRO R9700,2.10.0+rocm7.2.4.git3d3aa833,7.2.53211,amp-fp16,128,coco_rle,0.075,5.161,0.19,63,5.57,Output mode did not solve stable regression
+nightly_fp32_b64_binary,Docker nightly,R9700 gfx1201,AMD Radeon AI PRO R9700,2.14.0.dev20260617+rocm7.2,7.2.53211,fp32,64,binary_mask,,2.632,0.38,66,2.96,Best strict comparable result
+nightly_amp_b128_binary,Docker nightly,R9700 gfx1201,AMD Radeon AI PRO R9700,2.14.0.dev20260617+rocm7.2,7.2.53211,amp-fp16,128,binary_mask,0.076,1.478,0.68,63,5.39,Best comparable fast result
+nightly_amp_b128_coco_rle,Docker nightly,R9700 gfx1201,AMD Radeon AI PRO R9700,2.14.0.dev20260617+rocm7.2,7.2.53211,amp-fp16,128,coco_rle,0.076,1.452,0.69,63,5.39,Best practical result

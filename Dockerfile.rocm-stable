@@ -1,0 +1,32 @@
+# Stable/release ROCm PyTorch image used for comparison.
+# Note: On R9700, this PyTorch 2.10 based stack was slower in full SAM AMG
+# than both the host PyTorch 2.11 environment and the ROCm nightly image.
+ARG BASE_IMAGE=rocm/pytorch:rocm7.2.4_ubuntu24.04_py3.12_pytorch_release_2.10.0
+
+FROM ${BASE_IMAGE}
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+
+WORKDIR /workspace
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    wget \
+    curl \
+    ca-certificates \
+    libglib2.0-0 \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 -m pip install \
+        "numpy==1.26.4" \
+        "opencv-python-headless>=4.9" \
+        "requests>=2.31" \
+        "pycocotools>=2.0.7" && \
+    python3 -m pip install --no-deps \
+        "git+https://github.com/facebookresearch/segment-anything.git"
+
+CMD ["/bin/bash"]
