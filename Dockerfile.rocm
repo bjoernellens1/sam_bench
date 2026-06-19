@@ -1,0 +1,35 @@
+# Most recent public ROCm/PyTorch image currently visible on Docker Hub.
+# If this tag disappears, use the validated fallback:
+# rocm/pytorch:rocm7.2.4_ubuntu24.04_py3.12_pytorch_release_2.9.1
+ARG BASE_IMAGE=rocm/pytorch:rocm7.2.4_ubuntu24.04_py3.12_pytorch_release_2.10.0
+
+FROM ${BASE_IMAGE}
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+
+WORKDIR /workspace
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    wget \
+    curl \
+    ca-certificates \
+    libglib2.0-0 \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# AMD docs warn that NumPy 2.x can be incompatible with some ROCm torch wheels,
+# so keep NumPy 1.26.x for this benchmark environment.
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 -m pip install \
+        "numpy==1.26.4" \
+        "opencv-python-headless>=4.9" \
+        "requests>=2.31" \
+        "pycocotools>=2.0.7" && \
+    python3 -m pip install --no-deps \
+        "git+https://github.com/facebookresearch/segment-anything.git"
+
+# Do not copy the repo into the image; mount it live with docker run.
+CMD ["/bin/bash"]
